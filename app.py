@@ -6,6 +6,7 @@ import os
 app = Flask(__name__)
 
 links = {}
+links['links'] = {}
 
 yt_api_key = user_name = os.getenv('YT_MUSIC_KEY')
 yt_music_search_val = '%20Auto-generated%20by%20YouTube.'
@@ -34,7 +35,7 @@ def get_links():
         response_json = response.json()
         video_id = response_json['items'][0]['id']['videoId']
         yt_music_url = 'https://music.youtube.com/watch?v=' + video_id
-        links['YouTube Music'] = yt_music_url
+        links['links']['YouTube Music'] = yt_music_url
 
 
         grant_type = 'client_credentials'
@@ -42,15 +43,22 @@ def get_links():
         response = requests.post(spotify_token_url, data=body_params, auth = (spotify_client_id, spotify_client_secret)) 
         token_raw = loads(response.text)
         token = token_raw["access_token"]
-        spotify_get_url = "https://api.spotify.com/v1/search?q=" + search.replace(' ', '%20') + "&type=track,artist,album"
+        spotify_get_url = "https://api.spotify.com/v1/search?q=" + search.replace(' ', '%20') + "&type=track"
         payload = {}
         headers = {"Authorization": "Bearer {}".format(token)}
         response = requests.request("GET", spotify_get_url, headers=headers, data = payload)
         response_json = response.json()
         spotify_music_url = response_json['tracks']['items'][0]['external_urls']['spotify']
-        links['Spotify Music'] = spotify_music_url
+        links['links']['Spotify Music'] = spotify_music_url
+
+        
+        links['Song Name'] = response_json['tracks']['items'][0]['name']
+        links['Album Name'] = response_json['tracks']['items'][0]['album']['name']
+        links['Artist Name'] = response_json['tracks']['items'][0]['artists'][0]['name']
+        
 
         return(links)
+        # return(response_json)
 
 if __name__ == '__main__':
     app.run()
